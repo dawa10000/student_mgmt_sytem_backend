@@ -39,15 +39,11 @@ app.use('/api/users', userRoutes);
 // ===== Connect DB & Start Server =====
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.DB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+mongoose.connect(process.env.DB_URL).then(() => {
+  app.listen(PORT, () => {
+    console.log(`DB connected and Server running on port ${PORT}`);
+  });
 })
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`DB connected and Server running on port ${PORT}`);
-    });
-  })
   .catch((err) => {
     console.error("DB connection error:", err);
   });
