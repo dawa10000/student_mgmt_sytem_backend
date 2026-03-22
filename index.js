@@ -29,7 +29,7 @@ app.use(fileUpload({
   limits: { fileSize: 5 * 1024 * 1024 }
 }));
 app.use(express.json());
-app.use(express.static('uploads'));
+app.use('/uploads', express.static('uploads'));
 
 // ===== Test Route =====
 app.get('/', (req, res) => {
