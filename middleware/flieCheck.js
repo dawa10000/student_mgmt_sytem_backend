@@ -59,14 +59,14 @@ export const fileCheck = async (req, res, next) => {
 /* ================= UPDATE FILE CHECK ================= */
 export const updateFileCheck = async (req, res, next) => {
   try {
-    // ✅ Optional file
+    //  Optional file
     if (!req.files || !req.files.image) {
       return next();
     }
 
     const file = req.files.image;
 
-    // ✅ Validate extension
+    //  Validate extension
     const ext = path.extname(file.name).toLowerCase();
     if (!supportedFormats.includes(ext)) {
       return res.status(400).json({
@@ -74,7 +74,7 @@ export const updateFileCheck = async (req, res, next) => {
       });
     }
 
-    // ✅ File size limit
+    //  File size limit
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       return res.status(400).json({
@@ -82,17 +82,17 @@ export const updateFileCheck = async (req, res, next) => {
       });
     }
 
-    // ✅ Ensure uploads folder exists
+    //  Ensure uploads folder exists
     const uploadDir = "./uploads";
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir);
     }
 
-    // ✅ Safe filename
+    //  Safe filename
     const safeName = file.name.replace(/\s+/g, "-");
     const imagePath = `${uuidv4()}-${safeName}`;
 
-    // ✅ Move file
+    //  Move file
     await file.mv(`${uploadDir}/${imagePath}`);
 
     req.imagePath = imagePath;
