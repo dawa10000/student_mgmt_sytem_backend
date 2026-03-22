@@ -1,57 +1,106 @@
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { supportedFormats } from './flieCheck.js';
+import path from "path";
+import fs from "fs";
+import { v4 as uuidv4 } from "uuid";
+import { supportedFormats } from "./flieCheck.js";
 
+/* ================= USER CREATE IMAGE ================= */
+export const userFileCheck = async (req, res, next) => {
+  try {
+    // ✅ Check file exists
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({
+        message: "Please upload an image",
+      });
+    }
 
+    const file = req.files.image;
 
+    // ✅ Validate extension
+    const ext = path.extname(file.name).toLowerCase();
+    if (!supportedFormats.includes(ext)) {
+      return res.status(400).json({
+        message: "Unsupported file format",
+      });
+    }
 
-export const userFileCheck = (req, res, next) => {
+    // ✅ File size limit (5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return res.status(400).json({
+        message: "File too large (max 5MB)",
+      });
+    }
 
-  const file = req.files?.image;
-  if (!file) return res.status(400).json({
-    message: "Please upload an image"
-  });
+    // ✅ Ensure uploads folder exists
+    const uploadDir = "./uploads";
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
 
-  const ext = path.extname(file.name).toLowerCase();
+    // ✅ Safe filename
+    const safeName = file.name.replace(/\s+/g, "-");
+    const imagePath = `${uuidv4()}-${safeName}`;
 
-  if (!supportedFormats.includes(ext)) return res.status(400).json({
-    message: "Unsupported file format"
-  });
+    // ✅ Move file
+    await file.mv(`${uploadDir}/${imagePath}`);
 
-  const imagePath = `${uuidv4()}-${file.name}`;
-
-  file.mv(`./uploads/${imagePath}`, (err) => {
-    if (err) return res.status(500).json({
-      message: "Something went wrong"
-    });
     req.imagePath = imagePath;
 
     next();
-  });
-
-}
-
-
-export const userFileUpdateCheck = (req, res, next) => {
-
-  const file = req.files?.image;
-  if (!file) return next();
-
-  const ext = path.extname(file.name).toLowerCase();
-
-  if (!supportedFormats.includes(ext)) return res.status(400).json({
-    message: "Unsupported file format"
-  });
-
-  const imagePath = `${uuidv4()}-${file.name}`;
-
-  file.mv(`./uploads/${imagePath}`, (err) => {
-    if (err) return res.status(500).json({
-      message: "Something went wrong"
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      message: "File upload failed",
     });
+  }
+};
+
+/* ================= USER UPDATE IMAGE ================= */
+export const userFileUpdateCheck = async (req, res, next) => {
+  try {
+    // ✅ Optional file
+    if (!req.files || !req.files.image) {
+      return next();
+    }
+
+    const file = req.files.image;
+
+    // ✅ Validate extension
+    const ext = path.extname(file.name).toLowerCase();
+    if (!supportedFormats.includes(ext)) {
+      return res.status(400).json({
+        message: "Unsupported file format",
+      });
+    }
+
+    // ✅ File size limit
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return res.status(400).json({
+        message: "File too large (max 5MB)",
+      });
+    }
+
+    // ✅ Ensure uploads folder exists
+    const uploadDir = "./uploads";
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+
+    // ✅ Safe filename
+    const safeName = file.name.replace(/\s+/g, "-");
+    const imagePath = `${uuidv4()}-${safeName}`;
+
+    // ✅ Move file
+    await file.mv(`${uploadDir}/${imagePath}`);
+
     req.imagePath = imagePath;
 
     next();
-  });
-
-}
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      message: "File upload failed",
+    });
+  }
+};
